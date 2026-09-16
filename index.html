@@ -367,6 +367,22 @@
     }
 
     window.onload = initQuiz;
+
+    async function copyProofToClipboard() {
+  const simElement = document.getElementById('sim-card');
+  const canvas = await html2canvas(simElement);
+  
+  canvas.toBlob(async (blob) => {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      alert('Proof copied to clipboard! Paste it (Ctrl+V) directly into Brightspace.');
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  });
+}
 </script>
 
 </body>

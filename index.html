@@ -348,4 +348,104 @@
             incorrectTotal++;
             document.getElementById("incorrect-count").innerText = incorrectTotal;
             feedbackEl.className = "feedback-banner fb-incorrect";
-            feedbackEl.innerHTML = ` Incorrect. This is actually an example of <strong>${current.type}</strong>.<br><small>
+            feedbackEl.innerHTML = ` Incorrect. This is actually an example of <strong>${current.type}</strong>.<br><small>${current.reason}</small>`;
+        }
+
+        feedbackEl.style.display = "block";
+
+        if (correctTotal >= TARGET_CORRECT) {
+            nextBtn.innerText = "View Final Results 🏆";
+        } else {
+            nextBtn.innerText = "Next Statement ➔";
+        }
+        nextBtn.style.display = "block";
+    }
+
+    function loadNextStatement() {
+        if (correctTotal >= TARGET_CORRECT) {
+            showCompletionScreen();
+            return;
+        }
+
+        currentIndex++;
+        if (currentIndex >= shuffledBank.length) {
+            shuffledBank = shuffleArray(statementBank);
+            currentIndex = 0;
+        }
+        displayCurrentStatement();
+    }
+
+    function showCompletionScreen() {
+        document.getElementById("instruction").style.display = "none";
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("action-buttons").style.display = "none";
+        document.getElementById("progress-display").style.display = "none";
+        
+        const card = document.getElementById("display-card");
+        card.innerHTML = `
+            <div class="completion-box">
+                <div class="completion-title">🎉 Heat Transfer Challenge Complete!</div>
+                <p><strong>Excellent work!</strong> You mastered 10 statements on Radiation, Conduction, and Convection.</p>
+                <p>Total Attempts: <strong>${correctTotal + incorrectTotal}</strong></p>
+                <p>Incorrect Attempts: <strong>${incorrectTotal}</strong></p>
+            </div>
+        `;
+
+        const nextBtn = document.getElementById("next-btn");
+        nextBtn.innerText = "Restart Activity 🔄";
+        nextBtn.style.display = "block";
+        nextBtn.onclick = function() {
+            initQuiz();
+        };
+    }
+
+    async function copyProofToClipboard() {
+        const copyBtn = document.getElementById('copy-btn');
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "⏳ Capturing proof...";
+        copyBtn.disabled = true;
+
+        try {
+            const simElement = document.getElementById('quiz-card');
+            const canvas = await html2canvas(simElement, {
+                backgroundColor: "#ffffff",
+                scale: 2 // Crisp high-DPI capture
+            });
+            
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    alert("Could not generate image. Please try again.");
+                    copyBtn.innerText = originalText;
+                    copyBtn.disabled = false;
+                    return;
+                }
+
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    copyBtn.innerText = "✅ Copied to Clipboard!";
+                    setTimeout(() => {
+                        copyBtn.innerText = originalText;
+                        copyBtn.disabled = false;
+                    }, 2500);
+                } catch (err) {
+                    console.error('Clipboard write error:', err);
+                    alert('Clipboard write blocked by browser permissions. You can take a standard screenshot (Win + Shift + S or Cmd + Shift + 4).');
+                    copyBtn.innerText = originalText;
+                    copyBtn.disabled = false;
+                }
+            }, 'image/png');
+        } catch (error) {
+            console.error('html2canvas capture error:', error);
+            alert('Failed to capture proof.');
+            copyBtn.innerText = originalText;
+            copyBtn.disabled = false;
+        }
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
